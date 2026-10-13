@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spreadsheet dashboard</title>
+    <link rel="stylesheet" href="styles.css?v=2" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <section id="screen-upload" class="screen">
+      <div class="card upload-card">
+        <h1>Create a dashboard</h1>
+        <p class="lede">
+          Upload a spreadsheet. Your file stays on this computer and is never
+          sent anywhere.
+        </p>
+        <label class="file-button">
+          <input
+            id="file-input"
+            type="file"
+            accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
+          />
+          Choose file
+        </label>
+        <p id="file-name" class="file-name" hidden></p>
+        <div id="sheet-picker" class="sheet-picker" hidden>
+          <label for="sheet-select">Sheet</label>
+          <select id="sheet-select"></select>
+          <button type="button" id="sheet-continue" class="primary">
+            Continue
+          </button>
+        </div>
+        <p id="upload-error" class="error" hidden>Could not read file.</p>
+        <p class="hint">Accepted files: .xlsx and .csv</p>
+      </div>
+    </section>
+
+    <section id="screen-setup" class="screen" hidden>
+      <div class="card setup-card">
+        <h1>Set up your dashboard</h1>
+        <p class="lede">
+          Choose which columns to use. Charts are created for you from these
+          choices.
+        </p>
+
+        <label class="field">
+          <span>Dashboard title (optional)</span>
+          <input id="dash-title" type="text" placeholder="For example, Sales overview" />
+        </label>
+
+        <div class="setup-grid">
+          <fieldset>
+            <legend>Total of</legend>
+            <p class="field-hint">Numbers you want added up or averaged</p>
+            <div id="cols-numbers" class="check-list"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Group by</legend>
+            <p class="field-hint">Categories to compare, such as region or team</p>
+            <div id="cols-categories" class="check-list"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Dates</legend>
+            <p class="field-hint">Columns that show when something happened</p>
+            <div id="cols-dates" class="check-list"></div>
+          </fieldset>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="setup-back" class="secondary">Back</button>
+          <button type="button" id="setup-continue" class="primary">
+            Show dashboard
+          </button>
+        </div>
+        <p id="setup-error" class="error" hidden>
+          Choose at least one column to continue.
+        </p>
+      </div>
+    </section>
+
+    <section id="screen-dashboard" class="screen dashboard-screen" hidden>
+      <div class="dash-toolbar no-print">
+        <button type="button" id="start-over" class="secondary">
+          Upload another file
+        </button>
+        <button type="button" id="export-pdf" class="primary">Export PDF</button>
+      </div>
+
+      <div id="dashboard-export">
+        <h1 id="dashboard-title" class="dashboard-title" hidden></h1>
+
+        <div id="kpi-row" class="kpi-row"></div>
+
+        <div id="filter-row" class="filter-row no-print" hidden>
+          <span class="filter-label">Filters</span>
+          <div id="filter-controls" class="filter-controls"></div>
+        </div>
+
+        <div id="charts-wrap" class="charts-wrap">
+          <article id="card-bar" class="chart-card" hidden>
+            <header class="chart-header">
+              <div>
+                <h2>Compare categories</h2>
+                <p id="bar-subtitle" class="chart-subtitle"></p>
+              </div>
+              <div class="tweak no-print">
+                <label>
+                  Group by
+                  <select id="bar-group"></select>
+                </label>
+                <label>
+                  Total of
+                  <select id="bar-value"></select>
+                </label>
+              </div>
+            </header>
+            <div class="chart-box"><canvas id="chart-bar"></canvas></div>
+          </article>
+
+          <article id="card-doughnut" class="chart-card" hidden>
+            <header class="chart-header">
+              <div>
+                <h2>Share of total</h2>
+                <p id="doughnut-subtitle" class="chart-subtitle"></p>
+              </div>
+              <div class="tweak no-print">
+                <label>
+                  Group by
+                  <select id="doughnut-group"></select>
+                </label>
+                <label>
+                  Total of
+                  <select id="doughnut-value"></select>
+                </label>
+              </div>
+            </header>
+            <div class="chart-box doughnut-box">
+              <canvas id="chart-doughnut"></canvas>
+            </div>
+          </article>
+
+          <article id="card-line" class="chart-card chart-card-wide" hidden>
+            <header class="chart-header">
+              <div>
+                <h2>Trend over time</h2>
+                <p id="line-subtitle" class="chart-subtitle"></p>
+              </div>
+              <div class="tweak no-print">
+                <label>
+                  Date
+                  <select id="line-date"></select>
+                </label>
+                <label>
+                  Total of
+                  <select id="line-value"></select>
+                </label>
+              </div>
+            </header>
+            <div class="chart-box"><canvas id="chart-line"></canvas></div>
+          </article>
+        </div>
+      </div>
+
+      <article class="table-card">
+        <h2>Data preview</h2>
+        <p id="table-caption" class="table-caption"></p>
+        <div class="table-scroll">
+          <table id="preview-table"></table>
+        </div>
+      </article>
+    </section>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+    <script src="app.js?v=2"></script>
+  </body>
+</html>
